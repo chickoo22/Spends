@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Card sticking out -->
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M35,32 L68,32 A4,4 0 0,1 72,36 L72,42 L31,42 L31,36 A4,4 0 0,1 35,32 Z" />
+    <path
+        android:fillColor="#6EE7B7"
+        android:pathData="M38,36 L58,36 L58,38 L38,38 Z" />
+
+    <!-- Wallet Body Back Shadow -->
+    <path
+        android:fillColor="#047857"
+        android:pathData="M27,45 L81,45 A7,7 0 0,1 88,52 L88,72 A7,7 0 0,1 81,79 L27,79 A7,7 0 0,1 20,72 L20,52 A7,7 0 0,1 27,45 Z" />
+
+    <!-- Wallet Body Main -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M27,43 L81,43 A6,6 0 0,1 87,49 L87,70 A6,6 0 0,1 81,76 L27,76 A6,6 0 0,1 21,70 L21,49 A6,6 0 0,1 27,43 Z" />
+
+    <!-- Wallet Top Highlight -->
+    <path
+        android:fillColor="#A7F3D0"
+        android:pathData="M27,43 L81,43 A6,6 0 0,1 87,49 L87,51 L21,51 L21,49 A6,6 0 0,1 27,43 Z" />
+
+    <!-- Wallet Clasp Flap -->
+    <path
+        android:fillColor="#065F46"
+        android:pathData="M60,52 L83,52 A7,7 0 0,1 90,59 L90,61 A7,7 0 0,1 83,68 L60,68 Z" />
+    <path
+        android:fillColor="#047857"
+        android:pathData="M60,53 L82,53 A6,6 0 0,1 88,59 L88,61 A6,6 0 0,1 82,67 L60,67 Z" />
+
+    <!-- Clasp Button (Gold Coin) -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M78,60m-4,0a4,4 0,1,0 8,0a4,4 0,1,0 -8,0" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M78,60m-2.5,0a2.5,2.5 0,1,0 5,0a2.5,2.5 0,1,0 -5,0" />
+
+    <!-- Floating Trend Arrow at top-right -->
+    <path
+        android:fillColor="#FDE047"
+        android:pathData="M75,25 L88,25 L88,38 L83,33 L76,40 L70,34 L62,42 L59,39 L69,29 L75,35 Z" />
+</vector>

@@ -1,0 +1,6 @@
+{
+  "name": "SpendWise",
+  "description": "Day-to-day expense tracker with currency onboarding, custom categorization, interactive monthly trend charts, and transaction editing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
