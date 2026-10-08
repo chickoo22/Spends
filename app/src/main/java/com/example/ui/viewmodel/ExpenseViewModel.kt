@@ -15,6 +15,8 @@ import com.example.data.model.MonthlyAnalytics
 import com.example.data.model.MonthlyTrendPoint
 import com.example.data.model.OverallBudgetSummary
 import com.example.data.repository.ExpenseRepository
+import com.example.util.ParsedExpense
+import com.example.util.SmartExpenseParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -62,6 +64,20 @@ class ExpenseViewModel(
     // Recurring expenses stream from Room
     val allRecurringExpenses: StateFlow<List<RecurringExpenseEntity>> = repository.allRecurringExpenses
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // WhatsApp shared expense parsing state
+    private val _sharedParsedExpense = MutableStateFlow<ParsedExpense?>(null)
+    val sharedParsedExpense: StateFlow<ParsedExpense?> = _sharedParsedExpense.asStateFlow()
+
+    fun onWhatsAppTextShared(text: String) {
+        val categories = Category.defaultCategories + customCategories.value
+        val parsed = SmartExpenseParser.parse(text, categories)
+        _sharedParsedExpense.value = parsed
+    }
+
+    fun dismissSharedExpense() {
+        _sharedParsedExpense.value = null
+    }
 
     // Filtered expenses based on search and category
     val filteredExpenses: StateFlow<List<ExpenseEntity>> = combine(
@@ -190,6 +206,7 @@ class ExpenseViewModel(
 
     // Expense/Income CRUD
     fun addExpense(
+        title: String,
         amount: Double,
         category: Category,
         timestamp: Long = System.currentTimeMillis(),
@@ -199,7 +216,7 @@ class ExpenseViewModel(
     ) {
         viewModelScope.launch {
             val entity = ExpenseEntity(
-                title = category.name,
+                title = title.ifBlank { category.name },
                 amount = amount,
                 categoryId = category.id,
                 categoryName = category.name,
@@ -212,6 +229,17 @@ class ExpenseViewModel(
             )
             repository.insertExpense(entity)
         }
+    }
+
+    fun addExpense(
+        amount: Double,
+        category: Category,
+        timestamp: Long = System.currentTimeMillis(),
+        paymentMethod: String = "UPI",
+        notes: String = "",
+        isIncome: Boolean = false
+    ) {
+        addExpense(category.name, amount, category, timestamp, paymentMethod, notes, isIncome)
     }
 
     fun updateExpense(expense: ExpenseEntity) {

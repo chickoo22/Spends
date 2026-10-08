@@ -1,5 +1,6 @@
 package com.example
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.local.AppDatabase
 import com.example.data.repository.ExpenseRepository
+import com.example.ui.components.SmartParseExpenseDialog
 import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.BudgetsScreen
 import com.example.ui.screens.CurrencyOnboardingScreen
@@ -69,9 +71,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        handleSharedIntent(intent)
+
         setContent {
             SpendWiseTheme {
                 SpendWiseApp(viewModel = viewModel)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleSharedIntent(intent)
+    }
+
+    private fun handleSharedIntent(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { sharedText ->
+                viewModel.onWhatsAppTextShared(sharedText)
             }
         }
     }
@@ -92,6 +110,7 @@ fun SpendWiseApp(viewModel: ExpenseViewModel) {
     val budgetProgressList by viewModel.categoryBudgetProgressList.collectAsStateWithLifecycle()
     val overallBudgetSummary by viewModel.overallBudgetSummary.collectAsStateWithLifecycle()
     val recurringList by viewModel.allRecurringExpenses.collectAsStateWithLifecycle()
+    val sharedParsedExpense by viewModel.sharedParsedExpense.collectAsStateWithLifecycle()
 
     var currentTab by remember { mutableIntStateOf(0) } // 0: Home, 1: Budgets, 2: Analytics, 3: Transactions, 4: Settings
 
@@ -300,5 +319,19 @@ fun SpendWiseApp(viewModel: ExpenseViewModel) {
                 }
             }
         }
+    }
+
+    if (sharedParsedExpense != null) {
+        SmartParseExpenseDialog(
+            parsed = sharedParsedExpense!!,
+            availableCategories = com.example.data.model.Category.defaultCategories + customCategories,
+            currency = currentCurrency,
+            onDismiss = { viewModel.dismissSharedExpense() },
+            onConfirm = { title, amount, cat, payMethod, notes ->
+                viewModel.addExpense(title, amount, cat, System.currentTimeMillis(), payMethod, notes)
+                viewModel.dismissSharedExpense()
+            },
+            formatCurrency = { viewModel.formatCurrency(it) }
+        )
     }
 }
