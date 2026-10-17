@@ -99,7 +99,8 @@ fun HomeScreen(
     onChangeCurrencyRequested: () -> Unit,
     formatCurrency: (Double) -> String,
     overallBudgetSummary: com.example.data.model.OverallBudgetSummary? = null,
-    onNavigateToBudgets: () -> Unit = {}
+    onNavigateToBudgets: () -> Unit = {},
+    onAddCustomCategory: (name: String, iconKey: String, colorHex: Long) -> Unit = { _, _, _ -> }
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var expenseToEdit by remember { mutableStateOf<ExpenseEntity?>(null) }
@@ -587,7 +588,8 @@ fun HomeScreen(
             onDismiss = { showAddDialog = false },
             onSave = { amount, category, timestamp, paymentMethod, notes, isIncome ->
                 onAddExpense(amount, category, timestamp, paymentMethod, notes, isIncome)
-            }
+            },
+            onAddCustomCategory = onAddCustomCategory
         )
     }
 
@@ -617,7 +619,8 @@ fun HomeScreen(
             onDelete = {
                 onDeleteExpense(it)
                 expenseToEdit = null
-            }
+            },
+            onAddCustomCategory = onAddCustomCategory
         )
     }
 }

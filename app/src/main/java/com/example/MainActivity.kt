@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
             categoryBudgetDao = database.categoryBudgetDao(),
             recurringExpenseDao = database.recurringExpenseDao()
         )
-        ExpenseViewModelFactory(repository)
+        ExpenseViewModelFactory(application, repository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -236,15 +236,18 @@ fun SpendWiseApp(viewModel: ExpenseViewModel) {
                             onNextMonth = { viewModel.nextMonth() },
                             onResetCurrentMonth = { viewModel.resetToCurrentMonth() },
                             onSelectMonth = { y, m -> viewModel.setMonth(y, m) },
-                            onAddExpense = { title, amt, cat, time, payMethod, notes ->
-                                viewModel.addExpense(title, amt, cat, time, payMethod, notes)
+                            onAddExpense = { amt, cat, time, payMethod, notes, isIncome ->
+                                viewModel.addExpense(amt, cat, time, payMethod, notes, isIncome)
                             },
                             onUpdateExpense = { viewModel.updateExpense(it) },
                             onDeleteExpense = { viewModel.deleteExpense(it) },
                             onChangeCurrencyRequested = { currentTab = 4 },
                             formatCurrency = { viewModel.formatCurrency(it) },
                             overallBudgetSummary = overallBudgetSummary,
-                            onNavigateToBudgets = { currentTab = 1 }
+                            onNavigateToBudgets = { currentTab = 1 },
+                            onAddCustomCategory = { name, icon, color ->
+                                viewModel.addCustomCategory(name, icon, color)
+                            }
                         )
 
                         1 -> BudgetsScreen(
@@ -286,12 +289,15 @@ fun SpendWiseApp(viewModel: ExpenseViewModel) {
                             selectedYear = selectedYear,
                             selectedMonth = selectedMonth,
                             monthTitle = analytics.monthTitle,
-                            onAddExpense = { title, amt, cat, time, payMethod, notes ->
-                                viewModel.addExpense(title, amt, cat, time, payMethod, notes)
+                            onAddExpense = { amt, cat, time, payMethod, notes, isIncome ->
+                                viewModel.addExpense(amt, cat, time, payMethod, notes, isIncome)
                             },
                             onUpdateExpense = { viewModel.updateExpense(it) },
                             onDeleteExpense = { viewModel.deleteExpense(it) },
-                            formatCurrency = { viewModel.formatCurrency(it) }
+                            formatCurrency = { viewModel.formatCurrency(it) },
+                            onAddCustomCategory = { name, icon, color ->
+                                viewModel.addCustomCategory(name, icon, color)
+                            }
                         )
 
                         4 -> SettingsScreen(

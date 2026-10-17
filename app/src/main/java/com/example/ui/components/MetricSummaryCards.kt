@@ -149,15 +149,51 @@ fun MonthlyHeroSummaryCard(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Big Headline Currency Amount (Pure White & Tabular figures)
-                Text(
-                    text = formatCurrency(analytics.totalSpent),
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    ),
-                    color = Color.White
-                )
+                // Separated Totals: Spent vs Income
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "TOTAL SPENT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF94A3B8),
+                            fontSize = 11.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = formatCurrency(analytics.totalSpent),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.ExtraBold
+                            ),
+                            color = Color.White
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "TOTAL INCOME",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF94A3B8),
+                            fontSize = 11.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = formatCurrency(analytics.totalIncome),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.ExtraBold
+                            ),
+                            color = Color(0xFF34D399)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(18.dp))
 

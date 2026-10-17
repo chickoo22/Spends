@@ -1,5 +1,8 @@
 package com.example.ui.viewmodel
 
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,14 +33,19 @@ import java.util.Calendar
 import java.util.Locale
 
 class ExpenseViewModel(
+    application: Application,
     private val repository: ExpenseRepository
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    private val prefs = application.getSharedPreferences("spendwise_prefs", Context.MODE_PRIVATE)
 
     // Onboarding and Currency
     private val _isOnboarded = MutableStateFlow<Boolean?>(null)
     val isOnboarded: StateFlow<Boolean?> = _isOnboarded.asStateFlow()
 
-    private val _currentCurrency = MutableStateFlow(AvailableCurrencies.default)
+    private val _currentCurrency = MutableStateFlow(
+        AvailableCurrencies.findByCode(prefs.getString("currency_code", "USD") ?: "USD")
+    )
     val currentCurrency: StateFlow<Currency> = _currentCurrency.asStateFlow()
 
     // Custom categories
@@ -155,9 +163,22 @@ class ExpenseViewModel(
                 _currentCurrency.value = AvailableCurrencies.findByCode(savedCurrencyPair.first)
             }
         }
+
+        // Reactively observe currency code changes across app restarts
+        viewModelScope.launch {
+            repository.currencyCodeFlow.collect { code ->
+                if (!code.isNullOrBlank()) {
+                    _currentCurrency.value = AvailableCurrencies.findByCode(code)
+                }
+            }
+        }
     }
 
     fun completeOnboardingWithCurrency(currency: Currency, seedDemoData: Boolean = true) {
+        prefs.edit()
+            .putString("currency_code", currency.code)
+            .putString("currency_symbol", currency.symbol)
+            .apply()
         viewModelScope.launch {
             repository.saveCurrency(currency)
             _currentCurrency.value = currency
@@ -169,9 +190,13 @@ class ExpenseViewModel(
     }
 
     fun updateCurrency(currency: Currency) {
+        prefs.edit()
+            .putString("currency_code", currency.code)
+            .putString("currency_symbol", currency.symbol)
+            .apply()
+        _currentCurrency.value = currency
         viewModelScope.launch {
             repository.saveCurrency(currency)
-            _currentCurrency.value = currency
         }
     }
 
@@ -465,13 +490,13 @@ class ExpenseViewModel(
 
         val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        // Filter for current month
+        // Filter for current month (expenses only)
         val currentMonthExpenses = allExpenses.filter { item ->
             cal.timeInMillis = item.timestamp
-            cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month
+            cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month && !item.isIncome
         }
 
-        // Filter for previous month
+        // Filter for previous month (expenses only)
         val prevCal = Calendar.getInstance()
         prevCal.set(Calendar.YEAR, year)
         prevCal.set(Calendar.MONTH, month)
@@ -481,10 +506,15 @@ class ExpenseViewModel(
 
         val prevMonthExpenses = allExpenses.filter { item ->
             cal.timeInMillis = item.timestamp
-            cal.get(Calendar.YEAR) == prevYear && cal.get(Calendar.MONTH) == prevMonth
+            cal.get(Calendar.YEAR) == prevYear && cal.get(Calendar.MONTH) == prevMonth && !item.isIncome
         }
 
         val totalSpent = currentMonthExpenses.sumOf { it.amount }
+        val currentMonthIncomeItems = allExpenses.filter { item ->
+            cal.timeInMillis = item.timestamp
+            cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month && item.isIncome
+        }
+        val totalIncome = currentMonthIncomeItems.sumOf { it.amount }
         val prevMonthTotal = prevMonthExpenses.sumOf { it.amount }
 
         val percentChange: Double? = if (prevMonthTotal > 0.0) {
@@ -558,7 +588,7 @@ class ExpenseViewModel(
 
             val mTotal = allExpenses.filter { item ->
                 cal.timeInMillis = item.timestamp
-                cal.get(Calendar.YEAR) == tYear && cal.get(Calendar.MONTH) == tMonth
+                cal.get(Calendar.YEAR) == tYear && cal.get(Calendar.MONTH) == tMonth && !item.isIncome
             }.sumOf { it.amount }
 
             trends.add(
@@ -576,6 +606,7 @@ class ExpenseViewModel(
             month = month,
             monthTitle = monthTitle,
             totalSpent = totalSpent,
+            totalIncome = totalIncome,
             transactionCount = transactionCount,
             dailyAverage = dailyAverage,
             highestDay = highestDay,
@@ -590,12 +621,13 @@ class ExpenseViewModel(
 }
 
 class ExpenseViewModelFactory(
+    private val application: android.app.Application,
     private val repository: ExpenseRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ExpenseViewModel::class.java)) {
-            return ExpenseViewModel(repository) as T
+            return ExpenseViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

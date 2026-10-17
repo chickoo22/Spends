@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -76,7 +77,8 @@ fun AddEditExpenseDialog(
     availableCategories: List<Category>,
     onDismiss: () -> Unit,
     onSave: (amount: Double, category: Category, timestamp: Long, paymentMethod: String, notes: String, isIncome: Boolean) -> Unit,
-    onDelete: ((ExpenseEntity) -> Unit)? = null
+    onDelete: ((ExpenseEntity) -> Unit)? = null,
+    onAddCustomCategory: ((name: String, iconKey: String, colorHex: Long) -> Unit)? = null
 ) {
     val isEditing = existingExpense != null
 
@@ -326,12 +328,19 @@ fun AddEditExpenseDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
+                val customCats = availableCategories.filter { it.isCustom }
+                val displayedCategories = if (isIncome) {
+                    Category.incomeCategories + customCats
+                } else {
+                    availableCategories
+                }
+
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    availableCategories.forEach { cat ->
+                    displayedCategories.forEach { cat ->
                         val isSelected = selectedCategory.id == cat.id
                         val catColor = Color(cat.colorHex)
                         Surface(
@@ -364,6 +373,78 @@ fun AddEditExpenseDialog(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
+                        }
+                    }
+
+                    if (onAddCustomCategory != null) {
+                        var showNewCatDialog by remember { mutableStateOf(false) }
+                        var newCatName by remember { mutableStateOf("") }
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { showNewCatDialog = true }
+                                .testTag("add_custom_category_button")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "+ Add New",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        if (showNewCatDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showNewCatDialog = false },
+                                title = { Text("Add New Category") },
+                                text = {
+                                    Column {
+                                        OutlinedTextField(
+                                            value = newCatName,
+                                            onValueChange = { newCatName = it },
+                                            label = { Text("Category Name") },
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            if (newCatName.isNotBlank()) {
+                                                val iconKey = if (isIncome) "finance" else "shopping"
+                                                val colorHex = 0xFF6366F1L
+                                                onAddCustomCategory(newCatName.trim(), iconKey, colorHex)
+                                                showNewCatDialog = false
+                                                newCatName = ""
+                                            }
+                                        }
+                                    ) {
+                                        Text("Add")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showNewCatDialog = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
                         }
                     }
                 }

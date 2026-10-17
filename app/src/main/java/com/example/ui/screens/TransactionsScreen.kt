@@ -56,7 +56,6 @@ import com.example.data.model.Category
 import com.example.data.model.Currency
 import com.example.ui.components.AddEditExpenseDialog
 import com.example.ui.components.ExpenseItemCard
-import com.example.ui.components.ExportCsvDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -73,13 +72,13 @@ fun TransactionsScreen(
     onAddExpense: (amount: Double, category: Category, timestamp: Long, paymentMethod: String, notes: String, isIncome: Boolean) -> Unit,
     onUpdateExpense: (ExpenseEntity) -> Unit,
     onDeleteExpense: (ExpenseEntity) -> Unit,
-    formatCurrency: (Double) -> String
+    formatCurrency: (Double) -> String,
+    onAddCustomCategory: (name: String, iconKey: String, colorHex: Long) -> Unit = { _, _, _ -> }
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf<String?>(null) }
     var sortOption by remember { mutableIntStateOf(0) } // 0: Newest, 1: Oldest, 2: Highest Amount, 3: Lowest Amount
     var showSortMenu by remember { mutableStateOf(false) }
-    var showExportCsvDialog by remember { mutableStateOf(false) }
 
     var showAddDialog by remember { mutableStateOf(false) }
     var expenseToEdit by remember { mutableStateOf<ExpenseEntity?>(null) }
@@ -182,35 +181,6 @@ fun TransactionsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Export to CSV button
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { showExportCsvDialog = true }
-                                .testTag("transactions_export_csv_button")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.FileDownload,
-                                    contentDescription = "Export to CSV",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = "Export",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
 
                         // Sort button with dropdown
                         Box {
@@ -430,7 +400,8 @@ fun TransactionsScreen(
             onDismiss = { showAddDialog = false },
             onSave = { amount, category, timestamp, paymentMethod, notes, isIncome ->
                 onAddExpense(amount, category, timestamp, paymentMethod, notes, isIncome)
-            }
+            },
+            onAddCustomCategory = onAddCustomCategory
         )
     }
 
@@ -459,19 +430,8 @@ fun TransactionsScreen(
             onDelete = {
                 onDeleteExpense(it)
                 expenseToEdit = null
-            }
-        )
-    }
-
-    if (showExportCsvDialog) {
-        ExportCsvDialog(
-            allExpenses = filteredList,
-            currentCurrency = currentCurrency,
-            selectedYear = selectedYear,
-            selectedMonth = selectedMonth,
-            monthTitle = monthTitle,
-            onDismiss = { showExportCsvDialog = false },
-            formatCurrency = formatCurrency
+            },
+            onAddCustomCategory = onAddCustomCategory
         )
     }
 }

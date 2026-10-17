@@ -60,13 +60,20 @@ data class Category(
             Category("health", "Health & Medical", "health", 0xFF10B981L),
             Category("education", "Education", "education", 0xFF06B6D4L),
             Category("travel", "Travel & Vacation", "travel", 0xFF14B8A6L),
-            Category("subscriptions", "Subscriptions", "subscriptions", 0xFF8B5CF6L),
-            Category("other", "Other", "other", 0xFF64748BL)
+            Category("subscriptions", "Subscriptions", "subscriptions", 0xFF8B5CF6L)
+        )
+
+        val incomeCategories = listOf(
+            Category("salary", "Salary", "finance", 0xFF10B981L),
+            Category("investment", "Investment", "finance", 0xFF3B82F6L),
+            Category("bonus", "Bonus", "finance", 0xFFF97316L),
+            Category("interest_income", "Interest Income", "finance", 0xFF8B5CF6L),
+            Category("rental_income", "Rental Income", "housing", 0xFFEC4899L)
         )
 
         fun findById(id: String, customCategories: List<Category> = emptyList()): Category {
-            return (defaultCategories + customCategories).firstOrNull { it.id == id }
-                ?: defaultCategories.last()
+            return (defaultCategories + incomeCategories + customCategories).firstOrNull { it.id == id }
+                ?: defaultCategories.first()
         }
     }
 }

@@ -354,7 +354,7 @@ class ExampleRobolectricTest {
             )
         )
 
-        val viewModel = ExpenseViewModel(repository)
+        val viewModel = ExpenseViewModel(context as android.app.Application, repository)
         viewModel.setMonth(2026, Calendar.SEPTEMBER)
 
         val analytics = viewModel.calculateMonthlyAnalytics(expenses, 2026, Calendar.SEPTEMBER)

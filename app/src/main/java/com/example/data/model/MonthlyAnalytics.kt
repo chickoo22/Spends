@@ -29,6 +29,7 @@ data class MonthlyAnalytics(
     val month: Int, // 0-based, Calendar.JANUARY = 0
     val monthTitle: String,
     val totalSpent: Double,
+    val totalIncome: Double,
     val transactionCount: Int,
     val dailyAverage: Double,
     val highestDay: Int,
